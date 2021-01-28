@@ -29,19 +29,6 @@ from iouEval import iouEval, getColorEntry
 from shutil import copyfile
 
 
-# import torch
-# torch.backends.cuda.matmul.allow_tf32 = True
-# torch.backends.cudnn.benchmark = False
-# torch.backends.cudnn.deterministic = False
-# torch.backends.cudnn.allow_tf32 = True
-# data = torch.randn([1, 16, 256, 320], dtype=torch.float, device='cuda', requires_grad=True)
-# net = torch.nn.Conv2d(16, 16, kernel_size=[3, 1], padding=[1, 0], stride=[1, 1], dilation=[1, 1], groups=1)
-# net = net.cuda().float()
-# out = net(data)
-# out.backward(torch.randn_like(out))
-# torch.cuda.synchronize()
-
-
 NUM_CHANNELS = 3
 NUM_CLASSES = 2 #pascal=22, cityscapes=20
 
@@ -60,21 +47,21 @@ class MyCoTransform(object):
         input =  Resize(self.height, Image.BILINEAR)(input)
         target = Resize(self.height, Image.NEAREST)(target)
 
-        # if(self.augment):
-        #     # Random hflip
-        #     hflip = random.random()
-        #     if (hflip < 0.5):
-        #         input = input.transpose(Image.FLIP_LEFT_RIGHT)
-        #         target = target.transpose(Image.FLIP_LEFT_RIGHT)
+        if(self.augment):
+            # Random hflip
+            hflip = random.random()
+            if (hflip < 0.5):
+                input = input.transpose(Image.FLIP_LEFT_RIGHT)
+                target = target.transpose(Image.FLIP_LEFT_RIGHT)
             
-        #     #Random translation 0-2 pixels (fill rest with padding
-        #     transX = random.randint(-2, 2) 
-        #     transY = random.randint(-2, 2)
+            #Random translation 0-2 pixels (fill rest with padding
+            transX = random.randint(-2, 2)
+            transY = random.randint(-2, 2)
 
-        #     input = ImageOps.expand(input, border=(transX,transY,0,0), fill=0)
-        #     target = ImageOps.expand(target, border=(transX,transY,0,0), fill=255) #pad label filling with 255
-        #     input = input.crop((0, 0, input.size[0]-transX, input.size[1]-transY))
-        #     target = target.crop((0, 0, target.size[0]-transX, target.size[1]-transY))   
+            input = ImageOps.expand(input, border=(transX,transY,0,0), fill=0)
+            target = ImageOps.expand(target, border=(transX,transY,0,0), fill=1) #pad label filling with 255
+            input = input.crop((0, 0, input.size[0]-transX, input.size[1]-transY))
+            target = target.crop((0, 0, target.size[0]-transX, target.size[1]-transY))
 
         input = ToTensor()(input)
         if (self.enc):
